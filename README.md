@@ -1,18 +1,84 @@
 # vmo-request
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+`VmoRequest` 是一个基于 Axios 的请求工具类，旨在提供请求的缓存、状态管理和配置合并等功能。它特别适合需要在应用中频繁进行相同请求的场景，通过缓存机制可以有效减少服务器负载并提升应用性能。
 
-## Recommended IDE Setup
+### 功能特性
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+- 缓存机制：通过对请求配置进行 MD5 哈希处理，缓存请求结果，避免重复请求。
+- 状态管理：支持 PENDING、FULFILLED 和 REJECTED 三种状态管理，确保请求状态的一致性。
+- 配置合并：通过 mergeDeepRight 方法合并默认配置和用户配置，避免配置覆盖问题。
+- 过期时间：支持设置缓存过期时间，自动清理过期缓存。
 
-## Type Support For `.vue` Imports in TS
+### 安装
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+```nodejs
+npm install axios ramda md5
+```
+### 使用示例
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+```javascript
+import VmoRequest from './VmoRequest'
+import axios from 'axios'
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+const vmoRequest = new VmoRequest({
+  baseURL: 'https://api.example.com',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+async function fetchData() {
+  try {
+    const response = await vmoRequest.request({
+      url: '/data',
+      method: 'get'
+    }, 1000 * 60) // 缓存 1 分钟
+    console.log(response.data)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+fetchData()
+```
+
+### API 文档
+
+VmoRequest 类
+构造函数
+
+```javascript
+const vmoRequest = new VmoRequest({
+  baseURL: 'https://api.example.com',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+```
+
+`getDefaultConfig` 方法
+
+```javascript
+vmoRequest.getDefaultConfig() // Partial<AxiosRequestConfig>
+```
+- 返回值:
+  - 返回当前的默认配置。
+
+`setDefaultConfig` 方法
+```javascript
+vmoRequest.setDefaultConfig(config: Partial<AxiosRequestConfig>): boolean
+```
+- 参数:
+  - config: 新的默认配置。
+- 返回值:
+  - 返回 true 表示配置更新成功。
+
+`request` 方法
+```javascript
+vmoRequest.request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0): Promise<any>
+```
+- 参数:
+  - config: 用户的 Axios 配置。
+  - expiredTime: 缓存过期时间（毫秒），默认为 0（不缓存）。
+- 返回值:
+  - 返回一个 Promise，解析为请求的响应数据，或拒绝为错误数据。
