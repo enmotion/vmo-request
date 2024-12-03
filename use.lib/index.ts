@@ -49,11 +49,7 @@ export default class VmoRequest {
   public async request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0) {
     const $config = mergeDeepRight(this._defaultConfig, config) as Partial<AxiosRequestConfig> // 合并默认配置和用户配置
     const expired = Math.abs(expiredTime)
-    console.log(expired, 'expired')
-    if (expired !== 0) {
-      // 存在缓存需求
       const hash = md5(JSON.stringify($config)) // 获取请求配置的哈希值
-      // console.log(hash, this._queues[hash], this._queues[hash]?.expired, Date.now())
       /**
        * 存在缓存, 且缓存配置的过期时间尚未失效
        */
@@ -84,9 +80,6 @@ export default class VmoRequest {
         }
         return this._sendRequest($config, hash, expired)
       }
-    } else {
-      return this._sendRequest($config)
-    }
   }
   private async _sendRequest(config: AxiosRequestConfig, hash?: string, expired: number = 0) {
     return axios

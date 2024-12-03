@@ -82,36 +82,7 @@ describe('VmoRequest Concurrency', () => {
     expect(mock.history.post.length).toBe(1)
   })
 })
-describe('VmoRequest Concurrency not reuse', () => {
-  it('should not reuse pending promise for concurrent requests', async () => {
-    mock.onPost('/test2').reply(200, { data: 'test data' })
-    const queries: any[] = []
-    for (let k = 0; k < 10; k++) {
-      queries.push(vmoRequest.request({ method: 'post', url: '/test2' }))
-    }
-    const [
-      response1,
-      response2,
-      response3,
-      response4,
-      response5,
-      response6,
-      response7,
-      response8,
-      response9,
-      response10
-    ] = await Promise.all(queries)
 
-    expect([response1, response2, response3, response4, response5]).toEqual([
-      response6,
-      response7,
-      response8,
-      response9,
-      response10
-    ])
-    expect(mock.history.post.length).toBe(11)
-  })
-})
 
 describe('VmoRequest', () => {
   it('should handle API error and return rejected promise', async () => {
