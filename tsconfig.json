@@ -44,6 +44,6 @@
     "components/**/*.tsx",
     "components/**/*.vue"
   ],
-  "exclude": ["src/config/index.ts", "src/vite-env.d.ts"],
+  "exclude": ["src/main.ts","src/config/index.ts", "src/vite-env.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
