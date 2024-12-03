@@ -6,9 +6,11 @@ import { VmoRequest } from '../index'
 let mock: MockAdapter
 let vmoRequest: VmoRequest
 
+export function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
 beforeAll(() => {
   mock = new MockAdapter(axios)
-  console.log(mock.history.post.length, 'length')
   vmoRequest = new VmoRequest({ baseURL: 'https://api.example.com' })
 })
 
@@ -139,17 +141,14 @@ describe('VmoRequest', () => {
   it('should cache the error response and return it for subsequent requests', async () => {
     // 创建一个模拟的 Axios 实例
     const mockAxios = vi.spyOn(axios, 'request')
-
     // 模拟返回错误
     const errorResponse = {
       status: 500,
       data: { message: 'Internal Server Error' }
     }
     mockAxios.mockRejectedValue(errorResponse)
-
     // 创建 VmoRequest 实例
     const vmoRequest = new VmoRequest({ baseURL: 'https://api.example.com' })
-
     // 第一次调用 request 方法并期望返回错误
     const firstRequest = vmoRequest.request(
       {
@@ -158,9 +157,7 @@ describe('VmoRequest', () => {
       },
       10000
     ) // 设置缓存时间为 10 秒
-
     await expect(firstRequest).rejects.toEqual(errorResponse)
-
     // 第二次调用 request 方法，期望返回缓存的错误
     const secondRequest = vmoRequest.request(
       {
@@ -169,13 +166,51 @@ describe('VmoRequest', () => {
       },
       10000
     )
-
     await expect(secondRequest).rejects.toEqual(errorResponse)
-
     // 确保 axios.request 只被调用了一次（第一次请求时）
     expect(mockAxios).toHaveBeenCalledTimes(1)
-
     // 清理模拟
     mockAxios.mockRestore()
+  })
+})
+
+describe('VmoRequest Concurrency reuse reject cache', () => {
+  it('should reuse rejected promise for concurrent requests2', async () => {
+    mock.onGet('/error').reply(500, {
+      error: 'Internal Server Error'
+    })
+    let error1
+    let error2
+
+    try {
+      // 第一次请求，1秒后发出
+      await sleep(0)
+      await vmoRequest.request(
+        {
+          url: '/error',
+          method: 'get'
+        },
+        10000
+      )
+    } catch (error) {
+      error1 = error
+    }
+
+    try {
+      // 第二次请求，10秒后发出
+      await sleep(1000)
+      await await vmoRequest.request(
+        {
+          url: '/error',
+          method: 'get'
+        },
+        10000
+      )
+    } catch (error) {
+      error2 = error
+    }
+
+    // 比较两次请求的错误结果
+    expect(error1).toEqual(error2)
   })
 })

@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-02 17:07:35
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-03 18:06:31
+ * @Last Modified time: 2024-12-03 18:42:38
  */
 
 import md5 from 'md5'
@@ -49,6 +49,7 @@ export default class VmoRequest {
   public async request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0) {
     const $config = mergeDeepRight(this._defaultConfig, config) as Partial<AxiosRequestConfig> // 合并默认配置和用户配置
     const expired = Math.abs(expiredTime)
+    console.log(expired, 'expired')
     if (expired !== 0) {
       // 存在缓存需求
       const hash = md5(JSON.stringify($config)) // 获取请求配置的哈希值
