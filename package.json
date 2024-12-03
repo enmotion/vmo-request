@@ -2,7 +2,7 @@
   "name": "vmo-request",
   "version": "0.0.0-beta.0",
   "type": "module",
-  "private": true,
+  "private": false,
   "description": "axios request http https",
   "main": "./dist/vmo-request.umd.cjs",
   "module": "./dist/vmo-request.js",
