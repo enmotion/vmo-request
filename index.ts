@@ -1,3 +1,3 @@
 import VmoRequest from '@lib'
-import type ModAxiosType from '@type/index'
-export { VmoRequest, type ModAxiosType }
+// import type ModAxiosType from '@type/index'
+export { VmoRequest }

@@ -1,6 +1,7 @@
+import { VmoRequest } from '../index'
 
-import './assets/style.css';
-import { createApp } from 'vue';
-import App from './App.vue';
+const m = new VmoRequest({
+  baseURL: 's'
+})
 
-createApp(App).mount('#app')
+console.log(m)
