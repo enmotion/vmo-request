@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-02 17:07:35
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-04 12:50:51
+ * @Last Modified time: 2024-12-04 13:02:25
  */
 
 import md5 from 'md5'
@@ -93,7 +93,7 @@ export default class VmoRequest {
     retry: number = 0 /*新增重试次数参数*/
   ) {
     let retriesLeft = Math.min(retry, this._defaultConfig?.maxRetry ?? 9999)
-    const attemptRequest = async () => {
+    const attemptRequest: any = async () => {
       try {
         const res = await axios.request(config)
         if (hash) {
