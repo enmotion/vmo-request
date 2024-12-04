@@ -5,6 +5,7 @@
 ### 功能特性
 
 - 缓存机制：通过对请求配置进行 MD5 哈希处理，缓存请求结果，避免重复请求。
+- 重试机制：应对网络或接口的不稳定，可以自行设置重试机制，提升请求的成功率
 - 状态管理：支持 PENDING、FULFILLED 和 REJECTED 三种状态管理，确保请求状态的一致性。
 - 配置合并：通过 mergeDeepRight 方法合并默认配置和用户配置，避免配置覆盖问题。
 - 过期时间：支持设置缓存过期时间，自动清理过期缓存。
@@ -14,6 +15,7 @@
 ```nodejs
 npm install axios ramda md5
 ```
+
 ### 使用示例
 
 ```javascript
@@ -29,10 +31,14 @@ const vmoRequest = new VmoRequest({
 
 async function fetchData() {
   try {
-    const response = await vmoRequest.request({
-      url: '/data',
-      method: 'get'
-    }, 1000 * 60) // 缓存 1 分钟
+    const response = await vmoRequest.request(
+      {
+        url: '/data',
+        method: 'get'
+      },
+      1000 * 60, // 缓存 1 分钟
+      3 // 重试3次 一共请求4次
+    )
     console.log(response.data)
   } catch (error) {
     console.error(error)
@@ -56,29 +62,35 @@ const vmoRequest = new VmoRequest({
 })
 ```
 
-`getDefaultConfig` 方法
+`getDefaultConfig` 获取当前默认配置
 
 ```javascript
 vmoRequest.getDefaultConfig() // Partial<AxiosRequestConfig>
 ```
+
 - 返回值:
   - 返回当前的默认配置。
 
-`setDefaultConfig` 方法
+`setDefaultConfig` 重置当前默认配置
+
 ```javascript
 vmoRequest.setDefaultConfig(config: Partial<AxiosRequestConfig>): boolean
 ```
+
 - 参数:
   - config: 新的默认配置。
 - 返回值:
   - 返回 true 表示配置更新成功。
 
 `request` 方法
+
 ```javascript
-vmoRequest.request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0): Promise<any>
+vmoRequest.request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0, retryTimes:number=0): Promise<any>
 ```
+
 - 参数:
   - config: 用户的 Axios 配置。
   - expiredTime: 缓存过期时间（毫秒），默认为 0（不缓存）。
+  - retryTimes: 重试次数，默认为 0（不重试）。
 - 返回值:
   - 返回一个 Promise，解析为请求的响应数据，或拒绝为错误数据。

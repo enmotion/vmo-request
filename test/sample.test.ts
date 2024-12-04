@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest'
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
 import { VmoRequest } from '../index'
@@ -9,7 +9,7 @@ let vmoRequest: VmoRequest
 export function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
-beforeAll(() => {
+beforeEach(() => {
   mock = new MockAdapter(axios)
   vmoRequest = new VmoRequest({ baseURL: 'https://api.example.com' })
 })
@@ -81,8 +81,15 @@ describe('VmoRequest Concurrency', () => {
     ])
     expect(mock.history.post.length).toBe(1)
   })
+  it('should reuse pending promise for concurrent requests with cache', async () => {
+    mock.onPost('/test').reply(200, { data: 'test data' })
+    const request1 = await vmoRequest.request({ method: 'post', url: '/test' }, 10000)
+    await sleep(2000)
+    const request2 = await vmoRequest.request({ method: 'post', url: '/test' }, 10000)
+    expect(mock.history.post.length).toBe(1)
+    expect(request1).equals(request2)
+  })
 })
-
 
 describe('VmoRequest', () => {
   it('should handle API error and return rejected promise', async () => {
@@ -176,6 +183,42 @@ describe('VmoRequest Concurrency reuse reject cache', () => {
           method: 'get'
         },
         10000
+      )
+    } catch (error) {
+      error2 = error
+    }
+
+    // 比较两次请求的错误结果
+    expect(error1).toEqual(error2)
+  })
+})
+describe('VmoRequest Concurrency reuse reject cache', () => {
+  it('should reuse rejected promise for concurrent requests2', async () => {
+    mock.onGet('/error').reply(500, {
+      error: 'Internal Server Error'
+    })
+    let error1
+    let error2
+
+    try {
+      await vmoRequest.request(
+        {
+          url: '/error',
+          method: 'get'
+        },
+        0
+      )
+    } catch (error) {
+      error1 = error
+    }
+
+    try {
+      await await vmoRequest.request(
+        {
+          url: '/error',
+          method: 'get'
+        },
+        0
       )
     } catch (error) {
       error2 = error
