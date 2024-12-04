@@ -60,7 +60,26 @@ const vmoRequest = new VmoRequest({
     'Content-Type': 'application/json'
   }
 })
+console.log(!!vmRequest.instance) // false
+
+// 生成实例的构建模式
+const vmoRequest = new VmoRequest(
+  {
+    baseURL: 'https://api.example.com',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  },
+  true
+)
+console.log(!!vmRequest.instance) // true
+
+vmoRequest.instance // 伴随创建的 axios 实例
 ```
+
+- new VmoRequest(config,createInstance)参数:
+  - config: 默认配置。
+  - createInstance: 是否需要伴随创建一个 axios 实例 默认:false
 
 `getDefaultConfig` 获取当前默认配置
 

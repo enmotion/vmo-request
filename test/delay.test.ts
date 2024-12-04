@@ -17,6 +17,7 @@ afterAll(() => {
 
 describe('VmoRequest Concurrency not reuse', () => {
   it('should not reuse pending promise for concurrent requests', async () => {
+    expect(vmoRequest.instance).toEqual(null)
     mock.onPost('/test2').reply(200, { data: 'test data' })
     const queries: any[] = []
     for (let k = 0; k < 500; k++) {
@@ -28,6 +29,7 @@ describe('VmoRequest Concurrency not reuse', () => {
     expect(mock.history.post.length).toBe(1)
   })
   it('should retry untill success', async () => {
+    expect(vmoRequest.instance).toEqual(null)
     // 模拟接口返回的数据
     const responses = [
       { status: 303, data: { message: 'Partial Success' } },
@@ -51,6 +53,7 @@ describe('VmoRequest Concurrency not reuse', () => {
     }
   })
   it('should retry', async () => {
+    expect(vmoRequest.instance).toEqual(null)
     // 模拟接口返回的数据
     const responses = [
       { status: 303, data: { message: 'Partial Success' } },
@@ -74,6 +77,7 @@ describe('VmoRequest Concurrency not reuse', () => {
     }
   })
   it('should retry limit by maxRetry', async () => {
+    expect(vmoRequest.instance).toEqual(null)
     // 模拟接口返回的数据
     const responses = [
       { status: 303, data: { message: 'Partial Success' } },

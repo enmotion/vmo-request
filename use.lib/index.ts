@@ -2,13 +2,13 @@
  * @Author: enmotion
  * @Date: 2024-12-02 17:07:35
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-04 13:02:25
+ * @Last Modified time: 2024-12-04 15:38:51
  */
 
 import md5 from 'md5'
 import axios from 'axios'
 import { clone, mergeDeepRight, omit } from 'ramda'
-import type { AxiosRequestConfig } from 'axios'
+import type { AxiosRequestConfig, AxiosInstance } from 'axios'
 
 export type RequestProps<M> = {
   name?: string // 接口名称
@@ -27,6 +27,7 @@ export enum PromiseStatus {
 
 export default class VmoRequest {
   private _defaultConfig: Partial<AxiosRequestConfig & { maxRetry: number }> // 默认的 axios 配置
+  private _axiosInstance: AxiosInstance | null = null
   private _queues: Record<
     string,
     {
@@ -36,15 +37,20 @@ export default class VmoRequest {
       expired?: number | null // 缓存过期时间
     }
   >
-  constructor(config: Partial<AxiosRequestConfig>) {
+  constructor(config: Partial<AxiosRequestConfig>, createInstance: boolean = false) {
     this._queues = {} // 初始化缓存队列
     this._defaultConfig = config // 设置默认配置
+    createInstance && (this._axiosInstance = axios.create(config))
+  }
+  get instance(): AxiosInstance | null {
+    return this._axiosInstance
   }
   public getDefaultConfig() {
     return clone(omit(['maxRetry'], this._defaultConfig)) // 返回默认配置的深拷贝
   }
   public setDefaultConfig(config: Partial<AxiosRequestConfig>) {
     this._defaultConfig = config // 更新默认配置
+    !!this._axiosInstance && (this._axiosInstance = axios.create(this._defaultConfig))
     return true
   }
   public async request(
@@ -95,7 +101,7 @@ export default class VmoRequest {
     let retriesLeft = Math.min(retry, this._defaultConfig?.maxRetry ?? 9999)
     const attemptRequest: any = async () => {
       try {
-        const res = await axios.request(config)
+        const res = !this._axiosInstance ? await axios.request(config) : await this._axiosInstance(config)
         if (hash) {
           setTimeout(() => {
             this._updateCache(hash, res, expired, PromiseStatus.FULFILLED)
@@ -117,7 +123,6 @@ export default class VmoRequest {
         }
       }
     }
-
     return attemptRequest()
   }
   private _updateCache(hash: string, data: any, expired: number, status: PromiseStatus) {
