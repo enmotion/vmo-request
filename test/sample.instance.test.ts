@@ -245,3 +245,18 @@ describe('VmoRequest no cache and union', () => {
     expect(mock.history.get.length).toBe(4)
   })
 })
+
+describe('VmoRequest throw error', () => {
+  it('should throw error setDefaultConfig with wrong params', async () => {
+    expect(() => vmoRequest.setDefaultConfig(1)).toThrow(TypeError)
+    expect(() => vmoRequest.setDefaultConfig(1)).toThrow('setDefaultConfig with wrong params')
+  })
+  it('should throw error new VmoRequest with wrong params', async () => {
+    expect(() => new VmoRequest(1, true)).toThrow(TypeError)
+    expect(() => new VmoRequest(1, true)).toThrow('new VmoRequest: with wrong params')
+  })
+  // it('should throw error new VmoRequest with wrong params', async () => {
+  //   expect(async () => await vmoRequest.request(1, 'a', 'a')).toThrow(TypeError)
+  //   expect(async () => await vmoRequest.request(1, 'a', 'a')).toThrow('VmoRequest: request with wrong params')
+  // })
+})

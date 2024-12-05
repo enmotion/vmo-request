@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-02 21:07:35
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-05 17:52:52
+ * @Last Modified time: 2024-12-05 18:25:15
  */
 
 import md5 from 'md5'
@@ -43,9 +43,13 @@ export default class VmoRequest {
    * @param createInstance 是否创建 axios 实例，便于后期通过 .instance 直接访问到 axios 实例来配置相关其他属性
    */
   constructor(config: Partial<AxiosRequestConfig>, createInstance: boolean = false) {
-    this._queues = {} // 初始化缓存队列
-    this._defaultConfig = config // 设置默认配置
-    createInstance && (this._axiosInstance = axios.create(config))
+    try {
+      this._queues = {} // 初始化缓存队列
+      this._defaultConfig = config // 设置默认配置
+      createInstance && (this._axiosInstance = axios.create(config))
+    } catch (err) {
+      throw new TypeError('new VmoRequest: with wrong params')
+    }
   }
   /**
    * 获取 _axiosInstance 实例
@@ -66,9 +70,13 @@ export default class VmoRequest {
    * @returns {boolean} // 返回设置是否成功
    */
   public setDefaultConfig(config: Partial<AxiosRequestConfig>) {
-    this._defaultConfig = config // 更新默认配置
-    !!this._axiosInstance && (this._axiosInstance = axios.create(this._defaultConfig))
-    return true
+    try {
+      this._defaultConfig = config // 更新默认配置
+      !!this._axiosInstance && (this._axiosInstance = axios.create(this._defaultConfig))
+      return true
+    } catch (err) {
+      throw new TypeError('setDefaultConfig with wrong params')
+    }
   }
   /**
    * 请求方法
