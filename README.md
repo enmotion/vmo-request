@@ -109,7 +109,7 @@ vmoRequest.request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0,
 
 - 参数:
   - config: 用户的 Axios 配置。
-  - expiredTime: 缓存过期时间（毫秒），默认为 0（不缓存）。
+  - expiredTime: 缓存过期时间（毫秒），默认为 0（不缓存）但在同一个事件循环中发起的请求依然会执行队列合并的方式，但是如果设置为-1,则不会有任何的合并行为，会被视为普通请求，以应对某些特殊场景。
   - retryTimes: 重试次数，默认为 0（不重试）。
 - 返回值:
   - 返回一个 Promise，解析为请求的响应数据，或拒绝为错误数据。

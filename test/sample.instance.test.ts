@@ -225,3 +225,23 @@ describe('VmoRequest Concurrency reuse reject cache', () => {
     expect(error1).toEqual(error2)
   })
 })
+
+describe('VmoRequest no cache and union', () => {
+  it('should don`t activated any union', async () => {
+    mock.onGet('/test').reply(200, 'test data')
+    const response1 = await vmoRequest.request({ method: 'get', url: '/test' }, 100)
+    const response2 = await vmoRequest.request({ method: 'get', url: '/test' }, -1)
+    const response3 = await vmoRequest.request({ method: 'get', url: '/test' }, -1)
+    const response4 = await vmoRequest.request({ method: 'get', url: '/test' }, 100)
+    const response5 = await vmoRequest.request({ method: 'get', url: '/test' }, 100)
+    const response6 = await vmoRequest.request({ method: 'get', url: '/test' }, 100)
+    const response7 = await vmoRequest.request({ method: 'get', url: '/test' }, 100)
+    const response8 = await vmoRequest.request({ method: 'get', url: '/test' }, -1)
+    const response9 = await vmoRequest.request({ method: 'get', url: '/test' }, 100)
+    const response0 = await vmoRequest.request({ method: 'get', url: '/test' }, 100)
+    expect(vmoRequest.instance).not.toBeNull()
+    expect(response1.data).toEqual('test data')
+    expect(response1).toEqual(response2)
+    expect(mock.history.get.length).toBe(4)
+  })
+})
