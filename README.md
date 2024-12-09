@@ -1,22 +1,22 @@
 # vmo-request
 
-`VmoRequest` 是一个基于 Axios 的请求工具类，旨在提供请求的缓存、状态管理和配置合并等功能。它特别适合需要在应用中频繁进行相同请求的场景，通过缓存机制可以有效减少服务器负载并提升应用性能。
+`VmoRequest` is a request utility class based on Axios, designed to provide features such as caching, state management, and configuration merging. It is particularly suitable for scenarios where the same requests need to be frequently made in an application, as the caching mechanism can effectively reduce server load and improve application performance.
 
-### 功能特性
+### Features
 
-- 缓存机制：通过对请求配置进行 MD5 哈希处理，缓存请求结果，避免重复请求。
-- 重试机制：应对网络或接口的不稳定，可以自行设置重试机制，提升请求的成功率
-- 状态管理：支持 PENDING、FULFILLED 和 REJECTED 三种状态管理，确保请求状态的一致性。
-- 配置合并：通过 mergeDeepRight 方法合并默认配置和用户配置，避免配置覆盖问题。
-- 过期时间：支持设置缓存过期时间，自动清理过期缓存。
+- **Caching Mechanism**: By hashing request configurations with MD5, it caches request results to avoid duplicate requests.
+- **Retry Mechanism**: To handle network or API instability, you can set a retry mechanism to improve request success rates.
+- **State Management**: It supports three state management options: PENDING, FULFILLED, and REJECTED, ensuring consistency in request states.
+- **Configuration Merging**: It merges default configurations with user configurations using the `mergeDeepRight` method to prevent configuration overriding issues.
+- **Expiration Time**: It supports setting cache expiration times, automatically clearing expired caches.
 
-### 安装
+### Installation
 
 ```nodejs
 npm install axios ramda md5
 ```
 
-### 使用示例
+### Usage Example
 
 ```javascript
 import VmoRequest from './VmoRequest'
@@ -36,22 +36,32 @@ async function fetchData() {
         url: '/data',
         method: 'get'
       },
-      1000 * 60, // 缓存 1 分钟
-      3 // 重试3次 一共请求4次
+      1000 * 2, // Cache for 2 seconds
+      3 // Retry 3 times, total 4 requests
     )
     console.log(response.data)
   } catch (error) {
     console.error(error)
   }
 }
+fetchData() // Initiate the request
+fetchData() // Enter the waiting queue
+fetchData() // Enter the waiting queue
+fetchData() // Enter the waiting queue
+setTimeout(() => {
+  fetchData() // Enter the waiting queue or directly get the cached result if the data has been returned
+}, 1000 * 1)
+// In the end, only one request will be truly initiated. If it fails, it will retry 3 times. When the result is finally returned, it will be distributed to subsequent requests.
 
-fetchData()
+setTimeout(() => {
+  fetchData() // The cache will expire and a new request will be initiated
+}, 1000 * 10)
 ```
 
-### API 文档
+### API Documentation
 
-VmoRequest 类
-构造函数
+VmoRequest Class
+Constructor
 
 ```javascript
 const vmoRequest = new VmoRequest({
@@ -62,7 +72,7 @@ const vmoRequest = new VmoRequest({
 })
 console.log(!!vmRequest.instance) // false
 
-// 生成实例的构建模式
+// Build mode for generating instances
 const vmoRequest = new VmoRequest(
   {
     baseURL: 'https://api.example.com',
@@ -74,42 +84,42 @@ const vmoRequest = new VmoRequest(
 )
 console.log(!!vmRequest.instance) // true
 
-vmoRequest.instance // 伴随创建的 axios 实例
+vmoRequest.instance // The created axios instance
 ```
 
-- new VmoRequest(config,createInstance)参数:
-  - config: 默认配置。
-  - createInstance: 是否需要伴随创建一个 axios 实例 默认:false
+- **new VmoRequest(config, createInstance) Parameters**:
+  - **config**: Default configuration.
+  - **createInstance**: Boolean indicating whether to create an accompanying axios instance, default is false.
 
-`getDefaultConfig` 获取当前默认配置
+`getDefaultConfig` Method
 
 ```javascript
 vmoRequest.getDefaultConfig() // Partial<AxiosRequestConfig>
 ```
 
-- 返回值:
-  - 返回当前的默认配置。
+- **Return Value**:
+  - Returns the current default configuration.。
 
-`setDefaultConfig` 重置当前默认配置
+`setDefaultConfig` Method
 
 ```javascript
 vmoRequest.setDefaultConfig(config: Partial<AxiosRequestConfig>): boolean
 ```
 
-- 参数:
-  - config: 新的默认配置。
-- 返回值:
-  - 返回 true 表示配置更新成功。
+- **Parameters**:
+  - **config**: The new default configuration.
+- **Return Value**:
+  - **Returns** true if the configuration update is successful.。
 
-`request` 方法
+`request` Method
 
 ```javascript
 vmoRequest.request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0, retryTimes:number=0): Promise<any>
 ```
 
-- 参数:
-  - config: 用户的 Axios 配置。
-  - expiredTime: 缓存过期时间（毫秒），默认为 0（不缓存）但在同一个事件循环中发起的请求依然会执行队列合并的方式，但是如果设置为-1,则不会有任何的合并行为，会被视为普通请求，以应对某些特殊场景。
-  - retryTimes: 重试次数，默认为 0（不重试）。
-- 返回值:
-  - 返回一个 Promise，解析为请求的响应数据，或拒绝为错误数据。
+- **Parameters**:
+  - **config**: User’s Axios configuration.
+  - **expiredTime**: Cache expiration time (in milliseconds), default is 0 (no caching). However, requests initiated in the same event loop will still be merged, unless set to -1, in which case they will be treated as normal requests to handle certain special scenarios.
+  - **retryTimes**: Number of retries, default is 0 (no retries).
+- Return Value:
+  - **Returns** a Promise that resolves to the request response data or rejects with error data.
