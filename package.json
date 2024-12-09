@@ -1,6 +1,6 @@
 {
   "name": "vmo-request",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "type": "module",
   "private": false,
   "description": "axios request http https",
@@ -16,7 +16,9 @@
     "./*": "./*"
   },
   "files": [
-    "dist"
+    "dist",
+    "package.json",
+    "README.md"
   ],
   "scripts": {
     "coverage": "vitest run --coverage",
