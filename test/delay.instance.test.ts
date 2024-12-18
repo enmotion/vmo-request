@@ -10,7 +10,7 @@ beforeEach(() => {
   mock = new MockAdapter(axios)
   vmoRequest = new VmoRequest({ baseURL: 'https://api.example.com' }, true)
   vmoRequest.instance.interceptors.response.use(res => {
-    console.log('send:', res.data)
+    // console.log('send:', res.data)
     return res
   })
 })

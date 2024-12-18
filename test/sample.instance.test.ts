@@ -13,7 +13,7 @@ beforeEach(() => {
   mock = new MockAdapter(axios)
   vmoRequest = new VmoRequest({ baseURL: 'https://api.example.com' }, true)
   vmoRequest.instance.interceptors.response.use(res => {
-    console.log('send:', res.data)
+    // console.log('send:', res.data)
     return res
   })
 })
@@ -41,7 +41,7 @@ describe('VmoRequest Cache', () => {
     mock.onGet('/test').reply(200, 'test data')
     const response1 = await vmoRequest.request({ method: 'get', url: '/test' }, 10000)
     const response2 = await vmoRequest.request({ method: 'get', url: '/test' }, 10000)
-    console.log(response1, response2, 'aaaaaa')
+    // console.log(response1, response2, 'aaaaaa')
     expect(response1.data).toEqual('test data')
     expect(response1).toEqual(response2)
     expect(mock.history.get.length).toBe(1)

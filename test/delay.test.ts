@@ -100,4 +100,10 @@ describe('VmoRequest Concurrency not reuse', () => {
       expect(mock.history.post.length).toBe(101)
     }
   })
+  it('should throw error', async () => {
+    expect(() => vmoRequest._updateCache('sser', [], 12, 'fulfilled')).toThrow(TypeError)
+    expect(() => vmoRequest._updateCache('sser', [], 0, 'fulfilled')).toThrow(
+      "Cannot read properties of undefined (reading 'promise')"
+    )
+  })
 })

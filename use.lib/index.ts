@@ -94,6 +94,12 @@ export default class VmoRequest {
     if (expiredTime >= 0) {
       const expired = expiredTime
       const hash = md5(JSON.stringify($config)) // 获取请求配置的哈希值
+      this._queues = omit(
+        Object.keys(this._queues).filter(
+          key => this._queues[key]?.status != PromiseStatus.PENDING && Date.now() > this._queues[key].expired!
+        ),
+        this._queues
+      )
       /**
        * 存在缓存, 且缓存配置的过期时间尚未失效
        */
@@ -177,9 +183,12 @@ export default class VmoRequest {
    * @param status 请求Promise 状态
    */
   private _updateCache(hash: string, data: any, expired: number, status: PromiseStatus) {
-    if (expired > 0) {
-      const queue = this._queues[hash]
-      if (queue) {
+    // 如果缓存设置大于0
+    try {
+      if (expired > 0) {
+        // 1. 需要对返回数据进行缓存操作
+        const queue = this._queues[hash]
+        // console.log(queue, hash, this._queues[hash], 'queue')
         queue.response = data // 缓存响应数据
         queue.status = status // 更新状态
         queue.expired = Date.now() + expired // 设置缓存过期时间
@@ -191,16 +200,18 @@ export default class VmoRequest {
           }
         })
         queue.promise = [] // 清空 Promise 队列
+      } else {
+        this._queues[hash].promise.forEach(element => {
+          if (status === PromiseStatus.FULFILLED) {
+            element.resolve(data) // 解决所有挂起的 Promise
+          } else if (status === PromiseStatus.REJECTED) {
+            element.reject(data) // 拒绝所有挂起的 Promise
+          }
+        })
+        delete this._queues[hash]
       }
-    } else {
-      this._queues[hash].promise.forEach(element => {
-        if (status === PromiseStatus.FULFILLED) {
-          element.resolve(data) // 解决所有挂起的 Promise
-        } else if (status === PromiseStatus.REJECTED) {
-          element.reject(data) // 拒绝所有挂起的 Promise
-        }
-      })
-      delete this._queues[hash]
+    } catch (err) {
+      throw err
     }
   }
 }
