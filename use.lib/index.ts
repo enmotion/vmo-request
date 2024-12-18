@@ -3,6 +3,9 @@
  * @Date: 2024-12-02 21:07:35
  * @Last Modified by: enmotion
  * @Last Modified time: 2024-12-05 18:25:15
+ * 该库已经考虑过缓存问题的优化，目前缓存策略如下:
+ * 1.request 方法中 expiredTime > 0 的 才会进行缓存，否则只是简单的队列，请求周期完成后，就会删除这个队列 hash 对象
+ * 2.每次请求时，都会检查 this._queues, 状态不为 PromiseStatus.PENDING 同时 已经过期的 缓存数据，需要被清除关闭, 避免缓存膨胀
  */
 
 import md5 from 'md5'
