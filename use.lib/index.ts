@@ -17,9 +17,9 @@ export type RequestProps<M> = {
   name?: string // 接口名称
   key: string // 接口键名
   axiosConfig: Partial<AxiosRequestConfig> // 接口的 axios 配置
-  middlConfig: M // 中间件配置
-  expiredTime: number // 缓存过期时间（毫秒）
-  retry: number // 重试次数
+  middlConfig?: M // 中间件配置
+  expiredTime?: number // 缓存过期时间（毫秒）
+  retry?: number // 重试次数
 }
 
 export enum PromiseStatus {
