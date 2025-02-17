@@ -167,7 +167,7 @@ export default class VmoRequest {
         if (retriesLeft > 0) {
           retriesLeft--
           // console.log(`Retrying request, retries left: ${retriesLeft}`)
-          return new Promise((resolve,reject)=>{
+          return new Promise((resolve)=>{
             setTimeout(()=>{
               resolve(attemptRequest())
             },Math.abs(retryDelay))
