@@ -91,7 +91,8 @@ export default class VmoRequest {
   public async request(
     config: Partial<AxiosRequestConfig>,
     expiredTime: number = 0,
-    retry: number = 0 /* 新增重试次数参数，默认不重试*/
+    retry: number = 0, /* 新增重试次数参数，默认不重试*/
+    retryDelay:number = 0 /* 重试延迟时间 */
   ) {
     const $config = mergeDeepRight(this._defaultConfig, config) as Partial<AxiosRequestConfig> // 合并默认配置和用户配置
     if (expiredTime >= 0) {
@@ -131,10 +132,10 @@ export default class VmoRequest {
           status: PromiseStatus.PENDING, // 设置初始状态为 PENDING
           expired: null // 初始化过期时间
         }
-        return this._sendRequest($config, hash, expired, retry)
+        return this._sendRequest($config, hash, expired, retry,retryDelay)
       }
     } else {
-      return this._sendRequest(config, undefined, 0, retry)
+      return this._sendRequest(config, undefined, 0, retry,retryDelay)
     }
   }
   /**
@@ -149,7 +150,8 @@ export default class VmoRequest {
     config: AxiosRequestConfig,
     hash?: string,
     expired: number = 0,
-    retry: number = 0 /*新增重试次数参数*/
+    retry: number = 0, /*新增重试次数参数*/
+    retryDelay:number = 0 /* 重试延迟时间 */
   ) {
     let retriesLeft = Math.min(retry, this._defaultConfig?.maxRetry ?? 9)
     const attemptRequest: any = async () => {
@@ -165,7 +167,12 @@ export default class VmoRequest {
         if (retriesLeft > 0) {
           retriesLeft--
           // console.log(`Retrying request, retries left: ${retriesLeft}`)
-          return attemptRequest() // 递归调用以进行重试
+          return new Promise((resolve,reject)=>{
+            setTimeout(()=>{
+              resolve(attemptRequest())
+            },Math.abs(retryDelay))
+          })
+          // return attemptRequest() // 递归调用以进行重试
         } else {
           if (hash) {
             setTimeout(() => {

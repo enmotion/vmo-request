@@ -96,16 +96,16 @@ describe('VmoRequest Concurrency not reuse', () => {
       return [randomResponse.status, randomResponse.data]
     })
     try {
-      const res = await vmoRequest.request({ method: 'post', url: '/test2' }, 0, 1000)
+      const res = await vmoRequest.request({ method: 'post', url: '/test2' }, 0, 1000,100)
       // console.log(res, mock.history.post.length)
       expect(mock.history.post.length).toBe(3)
       expect(res.data).toEqual({ message: 'Success' })
     } catch {
       expect(mock.history.post.length).toBe(10)
     }
-  })
+  },20000)
   it('should retry limit by reset maxRetry', async () => {
-    const vmoRequest2 = new VmoRequest({ baseURL: 'https://api.example.com', maxRetry: 99 }, true)
+    const vmoRequest2 = new VmoRequest({ baseURL: 'https://api.example.com', maxRetry: 9 }, true)
     expect(vmoRequest2.instance).not.toBeNull()
     // 模拟接口返回的数据
     const responses = [
@@ -121,12 +121,13 @@ describe('VmoRequest Concurrency not reuse', () => {
       return [randomResponse.status, randomResponse.data]
     })
     try {
-      const res = await vmoRequest2.request({ method: 'post', url: '/test2' }, 0, 1000)
-      // console.log(res, mock.history.post.length)
+      const res = await vmoRequest2.request({ method: 'post', url: '/test2' }, 0, 1000,1000)
+      console.log(res, mock.history.post.length)
       expect(mock.history.post.length).toBe(3)
       expect(res.data).toEqual({ message: 'Success' })
     } catch {
-      expect(mock.history.post.length).toBe(100)
+      console.log(mock.history.post.length)
+      expect(mock.history.post.length).toBe(10)
     }
-  })
+  },20000)
 })

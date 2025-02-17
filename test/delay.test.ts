@@ -99,7 +99,7 @@ describe('VmoRequest Concurrency not reuse', () => {
     } catch {
       expect(mock.history.post.length).toBe(101)
     }
-  })
+  },20000)
   it('test _updateCache method should throw error', async () => {
     expect(() => vmoRequest._updateCache('sser', [], 12, 'fulfilled')).toThrow(TypeError)
     expect(() => vmoRequest._updateCache('sser', [], 0, 'fulfilled')).toThrow(

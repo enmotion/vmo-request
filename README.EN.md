@@ -120,6 +120,7 @@ vmoRequest.request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0,
 - **Parameters**:
   - **config**: User’s Axios configuration.
   - **expiredTime**: Cache expiration time (in milliseconds), default is 0 (no caching). However, requests initiated in the same event loop will still be merged, unless set to -1, in which case they will be treated as normal requests to handle certain special scenarios.
-  - **retryTimes**: Number of retries, default is 0 (no retries).
+  - **retryTimes**: The number of retries, with a default value of 0 (no retries. There is a limit, and the maximum value cannot exceed 9).
+  - **retryDelay**: The delay for retrying, with a default value of 0 (retry immediately after failure, unit: milliseconds).
 - Return Value:
   - **Returns** a Promise that resolves to the request response data or rejects with error data.
