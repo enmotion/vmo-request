@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
 import { VmoRequest } from '../index'
@@ -14,7 +14,7 @@ beforeEach(() => {
   vmoRequest = new VmoRequest({ baseURL: 'https://api.example.com' })
 })
 
-afterAll(() => {
+afterEach(() => {
   mock.restore()
 })
 
@@ -44,14 +44,14 @@ describe('VmoRequest Cache', () => {
 
   it('should make new request if cache expired', async () => {
     mock.onGet('/test').reply(200, { data: 'test data' })
-    mock.onGet('/test2').reply(200, { data: 'test data 2' })
 
-    const response1 = await vmoRequest.request({ method: 'get', url: '/test' }, 10000)
+
+    const response1 = await vmoRequest.request({ method: 'get', url: '/test' }, 50)
     await new Promise(resolve => setTimeout(resolve, 1000))
-    const response2 = await vmoRequest.request({ method: 'get', url: '/test2' }, 500)
+    const response2 = await vmoRequest.request({ method: 'get', url: '/test' }, 50)
     expect(vmoRequest.instance).toEqual(null)
     expect(mock.history.get.length).toBe(2)
-    expect(response1).not.toEqual(response2)
+    expect(response1.data).toEqual(response2.data)
   })
 })
 

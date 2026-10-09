@@ -14,7 +14,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     coverage: {
-      include: ['**/use.lib'],
+      include: ['index.ts', 'use.lib/**/*.ts'],
+      all: true,
+      thresholds: { statements: 100, branches: 100, functions: 100, lines: 100 },
       provider: 'v8',
       reportsDirectory: './test/reports/unit/coverage'
     }

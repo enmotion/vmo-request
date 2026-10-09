@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["test/api.compatibility.ts"],
+  "exclude": [],
+  "references": []
+}
