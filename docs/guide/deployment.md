@@ -1,0 +1,59 @@
+# 文档开发与部署
+
+文档基于 VitePress 1.6.4。中文使用站点根目录，英文使用 `/en/`。两种语言保持相同的页面层级，语言菜单可切换对应页面。
+
+## 本地开发
+
+```sh
+npm ci
+npm run docs:dev
+```
+
+按命令输出的地址打开站点。开发工具建议使用 Node.js 22 或更高版本。
+
+## 构建和预览
+
+```sh
+npm run docs:check
+npm run docs:preview
+```
+
+产物位于 `docs/.vitepress/dist`，默认项目路径为 `/vmo-request/`。本地预览时访问命令输出中的项目路径。
+
+构建保留断链检查；不要使用 `ignoreDeadLinks` 掩盖缺失页面。内置搜索无需 Algolia 账号。
+
+## GitHub Pages
+
+目标仓库为 [enmotion/vmo-request](https://github.com/enmotion/vmo-request)。预期站点地址为：
+
+```text
+https://enmotion.github.io/vmo-request/
+```
+
+1. 将文档和工作流提交到 GitHub 仓库的默认分支。
+2. 在仓库 **Settings → Pages → Build and deployment → Source** 中选择 **GitHub Actions**。
+3. 查看 **Actions → Documentation / GitHub Pages**。构建成功后，部署任务会发布站点。
+
+工作流支持 `main` 和 `master` 的推送，只有默认分支可以部署。Pull Request 只构建，不发布；也可以从 Actions 手动运行默认分支上的工作流。
+
+配置从 `GITHUB_REPOSITORY` 自动读取仓库名并生成资源路径，避免项目 Pages 下的 CSS、脚本和图片 404。站点使用 `.html` 链接，以兼容 GitHub Pages 的静态托管。
+
+## 自定义域名或路径
+
+默认不配置自定义域名。若托管在域名根目录，可设置仓库 Actions 变量 `DOCS_BASE` 为 `/`，并在 Pages 设置中配置域名。
+
+本地指定路径：
+
+```sh
+DOCS_BASE=/ npm run docs:build
+```
+
+根域名和项目路径使用不同产物；修改路径后需重新构建。
+
+## 维护双语内容
+
+中文指南放在 `docs/guide/`，英文对应页面放在 `docs/en/guide/`。API 页面分别位于 `docs/api/index.md` 和 `docs/en/api/index.md`。
+
+更新功能时同步修改两种语言，并保留已发布与未发布行为的区分。发布可靠性修复后，需要同步更新版本提示和升级页。
+
+仅构建文档不等于发布 npm 包，也不会修改 VmoRequest 的 API。

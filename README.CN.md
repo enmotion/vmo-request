@@ -1,126 +1,44 @@
 # vmo-request
 
-`VmoRequest` 是一个基于 Axios 的请求工具类，旨在提供请求的缓存、状态管理和配置合并等功能。它特别适合需要在应用中频繁进行相同请求的场景，通过缓存机制可以有效减少服务器负载并提升应用性能。
+基于 Axios 的请求工具，提供并发请求合并、短期结果缓存和可控重试，不依赖 UI 框架。
 
-### 功能特性
+[中文文档](https://enmotion.github.io/vmo-request/) · [English documentation](https://enmotion.github.io/vmo-request/en/) · [源码中的指南](docs/guide/getting-started.md)
 
-- **缓存机制**：通过对请求配置进行 MD5 哈希处理，缓存请求结果，避免重复请求。
-- **重试机制**：应对网络或接口的不稳定，可以自行设置重试机制，提升请求的成功率
-- **状态管理**：支持 PENDING、FULFILLED 和 REJECTED 三种状态管理，确保请求状态的一致性。
-- **配置合并**：通过 mergeDeepRight 方法合并默认配置和用户配置，避免配置覆盖问题。
-- **过期时间**：支持设置缓存过期时间，自动清理过期缓存。
+在线文档在启用 GitHub Pages 工作流并完成部署后可用。当前源码包含尚未发布的可靠性修复，详见[升级与兼容性](docs/guide/upgrade.md)。
 
-### 安装
+## 安装
 
-```nodejs
-npm install axios ramda md5
+```sh
+npm install vmo-request axios ramda md5
 ```
 
-### 使用示例
+## 使用
 
-```javascript
-import VmoRequest from './VmoRequest'
-import axios from 'axios'
+```ts
+import { VmoRequest } from 'vmo-request'
 
-const vmoRequest = new VmoRequest({
-  baseURL: 'https://api.example.com',
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
-
-async function fetchData() {
-  try {
-    const response = await vmoRequest.request(
-      {
-        url: '/data',
-        method: 'get'
-      },
-      1000 * 2, // 缓存 2 秒
-      3 // 重试3次 一共请求4次
-    )
-    console.log(response.data)
-  } catch (error) {
-    console.error(error)
-  }
-}
-fetchData() // 请求发起
-fetchData() // 进入等待队列
-fetchData() // 进入等待队列
-fetchData() // 进入等待队列
-setTimout(() => {
-  fetchData() // 进入等待队列 或 如果接口返回数据已返回，则会直接获取缓存结果
-}, 1000 * 1)
-// 最终只会有1次请求被真正发起，失败会尝试重试3次，最终返回结果时，将会分发给后续的请求。
-
-setTimout(() => {
-  fetchData() // 缓存失效，将会重新发起
-}, 1000 * 10)
-```
-
-### API 文档
-
-VmoRequest 类
-构造函数
-
-```javascript
-const vmoRequest = new VmoRequest({
-  baseURL: 'https://api.example.com',
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
-console.log(!!vmRequest.instance) // false
-
-// 生成实例的构建模式
-const vmoRequest = new VmoRequest(
-  {
-    baseURL: 'https://api.example.com',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  },
-  true
+const api = new VmoRequest({ baseURL: '/api', timeout: 5000 })
+const response = await api.request(
+  { url: '/users', method: 'get' },
+  2000, // 缓存 2 秒
+  2,    // 最多重试 2 次
+  300   // 固定重试延迟，单位毫秒
 )
-console.log(!!vmRequest.instance) // true
-
-vmoRequest.instance // 伴随创建的 axios 实例
+console.log(response.data)
 ```
 
-- new VmoRequest(config,createInstance)参数:
-  - config: 默认配置。
-  - createInstance: 是否需要伴随创建一个 axios 实例 默认:false
+`expiredTime < 0` 关闭缓存与合并；`0` 仅合并等待中的请求；正值缓存成功或普通失败结果。相同配置的 POST 也会合并，组内共享首次调用的策略和结果引用。
 
-`getDefaultConfig` 获取当前默认配置
+`createInstance = true` 时，`instance` 暴露 Axios 实例供注册拦截器。`setDefaultConfig()` 替换默认配置并重建实例，会重置拦截器。
 
-```javascript
-vmoRequest.getDefaultConfig() // Partial<AxiosRequestConfig>
+## 开发
+
+```sh
+npm ci
+npm run check       # 库构建、API/产物检查、测试与四项 100% 覆盖率门槛
+npm run docs:dev    # 双语文档开发
+npm run docs:check  # 文档类型检查与静态构建
+npm run docs:preview
 ```
 
-- 返回值:
-  - 返回当前的默认配置。
-
-`setDefaultConfig` 重置当前默认配置
-
-```javascript
-vmoRequest.setDefaultConfig(config: Partial<AxiosRequestConfig>): boolean
-```
-
-- 参数:
-  - config: 新的默认配置。
-- 返回值:
-  - 返回 true 表示配置更新成功。
-
-`request` 方法
-
-```javascript
-vmoRequest.request(config: Partial<AxiosRequestConfig>, expiredTime: number = 0, retryTimes:number=0): Promise<any>
-```
-
-- 参数:
-  - config: 用户的 Axios 配置。
-  - expiredTime: 缓存过期时间（毫秒），默认为 0（不缓存）但在同一个事件循环中发起的请求依然会执行队列合并的方式，但是如果设置为-1,则不会有任何的合并行为，会被视为普通请求，以应对某些特殊场景。
-  - retryTimes: 重试次数，默认为 0（不重试，存在限制，最大不超 9）。
-  - retryDelay: 重试延迟，默认为 0（失败后立即重试，单位:毫秒）。
-- 返回值:
-  - 返回一个 Promise，解析为请求的响应数据，或拒绝为错误数据。
+GitHub Pages 设置见[文档开发与部署](docs/guide/deployment.md)，完整兼容边界见 [UPGRADE.md](UPGRADE.md)。
